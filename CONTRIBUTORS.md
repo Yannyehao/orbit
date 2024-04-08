@@ -33,6 +33,7 @@ Guidelines for modifications:
 * Alice Zhou
 * Andrej Orsula
 * Antonio Serrano-Muñoz
+* Arjun Bhardwaj
 * Calvin Yu
 * Chenyu Yang
 * Jia Lin Yuan
@@ -42,6 +43,8 @@ Guidelines for modifications:
 * René Zurbrügg
 * Ritvik Singh
 * Rosario Scalise
+* Shafeef Omar
+* Vladimir Fokow
 
 ## Acknowledgements
 

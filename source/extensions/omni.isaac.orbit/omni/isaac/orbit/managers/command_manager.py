@@ -11,8 +11,9 @@ import inspect
 import torch
 import weakref
 from abc import abstractmethod
+from collections.abc import Sequence
 from prettytable import PrettyTable
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 import omni.kit.app
 
@@ -352,6 +353,17 @@ class CommandManager(ManagerBase):
             The command tensor of the specified command term.
         """
         return self._terms[name].command
+
+    def get_term(self, name: str) -> CommandTerm:
+        """Returns the command term with the specified name.
+
+        Args:
+            name: The name of the command term.
+
+        Returns:
+            The command term with the specified name.
+        """
+        return self._terms[name]
 
     """
     Helper functions.

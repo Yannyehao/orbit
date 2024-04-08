@@ -7,11 +7,11 @@ from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher, run_tests
 
 # launch omniverse app
 config = {"headless": True}
-simulation_app = SimulationApp(config)
+simulation_app = AppLauncher(config).app
 
 """Rest everything follows."""
 
@@ -297,5 +297,4 @@ class TestObservationManager(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
-    simulation_app.close()
+    run_tests()

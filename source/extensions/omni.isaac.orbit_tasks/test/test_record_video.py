@@ -7,25 +7,19 @@ from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
-import os
-
-from omni.isaac.orbit.app import AppLauncher
+from omni.isaac.orbit.app import AppLauncher, run_tests
 
 # launch the simulator
-app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.gym.headless.kit"
-app_launcher = AppLauncher(headless=True, offscreen_render=True, experience=app_experience)
+app_launcher = AppLauncher(headless=True, offscreen_render=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
-
 import gymnasium as gym
 import os
 import torch
-import traceback
 import unittest
 
-import carb
 import omni.usd
 
 from omni.isaac.orbit.envs import RLTaskEnv, RLTaskEnvCfg
@@ -95,12 +89,4 @@ class TestRecordVideoWrapper(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    try:
-        unittest.main()
-    except Exception as err:
-        carb.log_error(err)
-        carb.log_error(traceback.format_exc())
-        raise
-    finally:
-        # close sim app
-        simulation_app.close()
+    run_tests()
