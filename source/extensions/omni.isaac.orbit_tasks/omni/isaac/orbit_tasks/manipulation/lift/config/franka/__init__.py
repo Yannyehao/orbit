@@ -22,9 +22,18 @@ gym.register(
     kwargs={
         "env_cfg_entry_point": joint_pos_env_cfg.FrankaCubeLiftEnvCfg,
         "rsl_rl_cfg_entry_point": agents.rsl_rl_cfg.LiftCubePPORunnerCfg,
+        "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
     },
     disable_env_checker=True,
 )
+
+# List all registered environment IDs
+envs = list(gym.envs.registry.keys())
+if "Isaac-Lift-Cube-Franka-v0" in envs:
+    print("Environment 'Isaac-Lift-Cube-Franka-v0' has been successfully registered.")
+else:
+    print("Environment 'Isaac-Lift-Cube-Franka-v0' failed to register.")
+
 
 gym.register(
     id="Isaac-Lift-Cube-Franka-Play-v0",
