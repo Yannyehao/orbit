@@ -42,10 +42,16 @@ simulation_app = app_launcher.app
 import gymnasium as gym
 import os
 import torch
+import torch.nn as nn
 
 from skrl.agents.torch.ppo import PPO, PPO_DEFAULT_CONFIG
 from skrl.utils.model_instantiators.torch import deterministic_model, gaussian_model, shared_model
-
+from skrl.agents.torch.sac import SAC, SAC_DEFAULT_CONFIG
+from skrl.memories.torch import RandomMemory
+from skrl.models.torch import DeterministicMixin, GaussianMixin, Model
+from skrl.resources.preprocessors.torch import RunningStandardScaler
+from skrl.trainers.torch import SequentialTrainer
+from skrl.utils import set_seed
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import get_checkpoint_path, load_cfg_from_registry, parse_env_cfg
 from omni.isaac.orbit_tasks.utils.wrappers.skrl import SkrlVecEnvWrapper, process_skrl_cfg
@@ -66,48 +72,65 @@ def main():
 
     # instantiate models using skrl model instantiator utility
     # https://skrl.readthedocs.io/en/latest/modules/skrl.utils.model_instantiators.html
-    models = {}
-    # non-shared models
-    if experiment_cfg["models"]["separate"]:
-        models["policy"] = gaussian_model(
-            observation_space=env.observation_space,
-            action_space=env.action_space,
-            device=env.device,
-            **process_skrl_cfg(experiment_cfg["models"]["policy"]),
-        )
-        models["value"] = deterministic_model(
-            observation_space=env.observation_space,
-            action_space=env.action_space,
-            device=env.device,
-            **process_skrl_cfg(experiment_cfg["models"]["value"]),
-        )
-    # shared models
-    else:
-        models["policy"] = shared_model(
-            observation_space=env.observation_space,
-            action_space=env.action_space,
-            device=env.device,
-            structure=None,
-            roles=["policy", "value"],
-            parameters=[
-                process_skrl_cfg(experiment_cfg["models"]["policy"]),
-                process_skrl_cfg(experiment_cfg["models"]["value"]),
-            ],
-        )
-        models["value"] = models["policy"]
+    class StochasticActor(GaussianMixin, Model):
+            def __init__(self, observation_space, action_space, device, clip_actions=False,
+                        clip_log_std=True, min_log_std=-5, max_log_std=2):
+                Model.__init__(self, observation_space, action_space, device)
+                GaussianMixin.__init__(self, clip_actions, clip_log_std, min_log_std, max_log_std)
 
+                self.net = nn.Sequential(nn.Linear(self.num_observations, 512),
+                                        nn.ReLU(),
+                                        nn.Linear(512, 256),
+                                        nn.ReLU(),
+                                        nn.Linear(256, self.num_actions),
+                                        nn.Tanh())
+                self.log_std_parameter = nn.Parameter(torch.zeros(self.num_actions))
+
+            def compute(self, inputs, role):
+                return self.net(inputs["states"]), self.log_std_parameter, {}
+
+    class Critic(DeterministicMixin, Model):
+        def __init__(self, observation_space, action_space, device, clip_actions=False):
+            Model.__init__(self, observation_space, action_space, device)
+            DeterministicMixin.__init__(self, clip_actions)
+
+            self.net = nn.Sequential(nn.Linear(self.num_observations + self.num_actions, 512),
+                                    nn.ReLU(),
+                                    nn.Linear(512, 256),
+                                    nn.ReLU(),
+                                    nn.Linear(256, 1))
+
+        def compute(self, inputs, role):
+            return self.net(torch.cat([inputs["states"], inputs["taken_actions"]], dim=1)), {}
+
+    # define the environment action and observation space
+    observation_space = env.observation_space
+    action_space = env.action_space
+    device = env.device
+
+    models = {}
+    models["policy"] = StochasticActor(env.observation_space, env.action_space, device)
+    models["critic_1"] = Critic(env.observation_space, env.action_space, device)
+    models["critic_2"] = Critic(env.observation_space, env.action_space, device)
+    models["target_critic_1"] = Critic(env.observation_space, env.action_space, device)
+    models["target_critic_2"] = Critic(env.observation_space, env.action_space, device)
+
+       # instantiate a ReplayMemory as rollout buffer (any memory can be used for this)
+    memory_size = experiment_cfg["agent"]["rollouts"]  
+    memory = RandomMemory(memory_size=memory_size, num_envs=env.num_envs, device=env.device)
     # configure and instantiate PPO agent
     # https://skrl.readthedocs.io/en/latest/modules/skrl.agents.ppo.html
-    agent_cfg = PPO_DEFAULT_CONFIG.copy()
+    agent_cfg = SAC_DEFAULT_CONFIG.copy()
     experiment_cfg["agent"]["rewards_shaper"] = None  # avoid 'dictionary changed size during iteration'
     agent_cfg.update(process_skrl_cfg(experiment_cfg["agent"]))
+
 
     agent_cfg["state_preprocessor_kwargs"].update({"size": env.observation_space, "device": env.device})
     agent_cfg["value_preprocessor_kwargs"].update({"size": 1, "device": env.device})
     agent_cfg["experiment"]["write_interval"] = 0  # don't log to Tensorboard
     agent_cfg["experiment"]["checkpoint_interval"] = 0  # don't generate checkpoints
 
-    agent = PPO(
+    agent = SAC(
         models=models,
         memory=None,  # memory is optional during evaluation
         cfg=agent_cfg,
@@ -143,7 +166,6 @@ def main():
             actions = agent.act(obs, timestep=0, timesteps=0)[0]
             # env stepping
             obs, _, _, _, _ = env.step(actions)
-            #print(f"reward: {env.get_reward()}")
 
     # close the simulator
     env.close()
