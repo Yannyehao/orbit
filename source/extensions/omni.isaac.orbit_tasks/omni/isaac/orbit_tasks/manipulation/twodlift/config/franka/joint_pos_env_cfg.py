@@ -63,7 +63,7 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
         
         self.scene.object2 = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object2",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0.2, 0.055], rot=[1, 0, 0, 0]),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0.1, 0.055], rot=[1, 0, 0, 0]),
             spawn=UsdFileCfg(
                 usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/DexCube/dex_cube_instanceable.usd",
                 scale=(0.8, 0.8, 0.8),

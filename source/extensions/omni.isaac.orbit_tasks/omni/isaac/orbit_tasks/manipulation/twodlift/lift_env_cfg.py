@@ -167,6 +167,22 @@ class RewardsCfg:
         weight=5.0,
     )
     
+    # reaching_object2 = RewTerm(func=mdp.object2_ee_distance, params={"std": 0.5}, weight=4.0)
+
+    # lifting_object2 = RewTerm(func=mdp.object2_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
+
+    # object2_goal_tracking = RewTerm(
+    #     func=mdp.object2_goal_distance,
+    #     params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
+    #     weight=16.0,
+    # )
+
+    # object2_goal_tracking_fine_grained = RewTerm(
+    #     func=mdp.object2_goal_distance,
+    #     params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
+    #     weight=5.0,
+    # )
+
 
 
 
