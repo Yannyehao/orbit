@@ -106,6 +106,8 @@ class ObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
+        # Add object2 position in robot root frame
+        object2_position = ObsTerm(func=mdp.object2_position_in_robot_root_frame)
         target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
         actions = ObsTerm(func=mdp.last_action)
 
@@ -153,7 +155,7 @@ class RewardsCfg:
 
     reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.5}, weight=4.0)
 
-    lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
+    # lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
 
     object_goal_tracking = RewTerm(
         func=mdp.object_goal_distance,
@@ -167,24 +169,21 @@ class RewardsCfg:
         weight=5.0,
     )
     
-    # reaching_object2 = RewTerm(func=mdp.object2_ee_distance, params={"std": 0.5}, weight=4.0)
+    reaching_object2 = RewTerm(func=mdp.object2_ee_distance, params={"std": 0.5}, weight=4.0)
 
     # lifting_object2 = RewTerm(func=mdp.object2_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
 
-    # object2_goal_tracking = RewTerm(
-    #     func=mdp.object2_goal_distance,
-    #     params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
-    #     weight=16.0,
-    # )
+    object2_goal_tracking = RewTerm(
+        func=mdp.object2_goal_distance,
+        params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
+        weight=16.0,
+    )
 
-    # object2_goal_tracking_fine_grained = RewTerm(
-    #     func=mdp.object2_goal_distance,
-    #     params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
-    #     weight=5.0,
-    # )
-
-
-
+    object2_goal_tracking_fine_grained = RewTerm(
+        func=mdp.object2_goal_distance,
+        params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
+        weight=5.0,
+    )
 
     # action penalty
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-1e-3)
@@ -195,26 +194,6 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
     
-    # release_penalty = RewTerm(
-    # func=mdp.object_release_penalty,
-    # params={"release_threshold": 0.001, "distance_threshold": 0.02}, 
-    # weight=-0.5  #
-    # )
-
-
- 
-    # New reward term for dropping the object at the goal
-    # dropping_object = RewTerm(
-    #     func=mdp.drop_success,
-    #     params={
-    #         "tolerance": 0.05,
-    #         "minimal_height": 0.01,
-    #         "command_name": "object_pose",
-    #         "object_cfg": SceneEntityCfg("object")
-    #     },
-    #     weight=20.0
-    # )
-
 
 
 @configclass
