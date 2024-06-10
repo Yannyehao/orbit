@@ -119,6 +119,78 @@ def object2_goal_distance(
     return 1 - torch.tanh(distance / std)
 
 
+def block_1_hint(
+    env: RLTaskEnv,
+    object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
+    ee_frame_cfg: SceneEntityCfg = SceneEntityCfg("ee_frame"),
+) -> torch.Tensor:
+    """Reward the agent for reaching the object using tanh-kernel."""
+    # extract the used quantities (to enable type-hinting)
+    object: RigidObject = env.scene[object_cfg.name]
+    ee_frame: FrameTransformer = env.scene[ee_frame_cfg.name]
+    # Target object position: (num_envs, 3)
+    cube_pos_w = object.data.root_pos_w
+    # End-effector position: (num_envs, 3)
+    ee_w = ee_frame.data.target_pos_w[..., 0, :]
+    # Distance of the end-effector to the object: (num_envs,)
+    object_ee_distance = torch.norm(cube_pos_w - ee_w, dim=1)
+
+    return torch.exp(-0.5*object_ee_distance)
 
 
+def block_2_hint(
+    env: RLTaskEnv,
+    object_cfg: SceneEntityCfg = SceneEntityCfg("object2"),
+    ee_frame_cfg: SceneEntityCfg = SceneEntityCfg("ee_frame"),
+) -> torch.Tensor:
+    """Reward the agent for reaching the object using tanh-kernel."""
+    # extract the used quantities (to enable type-hinting)
+    object: RigidObject = env.scene[object_cfg.name]
+    ee_frame: FrameTransformer = env.scene[ee_frame_cfg.name]
+    # Target object position: (num_envs, 3)
+    cube_pos_w = object.data.root_pos_w
+    # End-effector position: (num_envs, 3)
+    ee_w = ee_frame.data.target_pos_w[..., 0, :]
+    # Distance of the end-effector to the object: (num_envs,)
+    object_ee_distance = torch.norm(cube_pos_w - ee_w, dim=1)
 
+    return torch.exp(-0.5*object_ee_distance)
+
+
+def block1_goal_distance(
+    env: RLTaskEnv,
+    command_name: str,
+    robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
+) -> torch.Tensor:
+    """Reward the agent for tracking the goal pose using tanh-kernel."""
+    # extract the used quantities (to enable type-hinting)
+    robot: RigidObject = env.scene[robot_cfg.name]
+    object: RigidObject = env.scene[object_cfg.name]
+    command = env.command_manager.get_command(command_name)
+    # compute the desired position in the world frame
+    des_pos_b = command[:, :3]
+    des_pos_w, _ = combine_frame_transforms(robot.data.root_state_w[:, :3], robot.data.root_state_w[:, 3:7], des_pos_b)
+    # distance of the end-effector to the object: (num_envs,)
+    distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
+    
+    return torch.exp(-0.5*distance)
+
+def block2_goal_distance(
+    env: RLTaskEnv,
+    command_name: str,
+    robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    object_cfg: SceneEntityCfg = SceneEntityCfg("object2"),
+) -> torch.Tensor:
+    """Reward the agent for tracking the goal pose using tanh-kernel."""
+    # extract the used quantities (to enable type-hinting)
+    robot: RigidObject = env.scene[robot_cfg.name]
+    object: RigidObject = env.scene[object_cfg.name]
+    command = env.command_manager.get_command(command_name)
+    # compute the desired position in the world frame
+    des_pos_b = command[:, :3]
+    des_pos_w, _ = combine_frame_transforms(robot.data.root_state_w[:, :3], robot.data.root_state_w[:, 3:7], des_pos_b)
+    # distance of the end-effector to the object: (num_envs,)
+    distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
+    
+    return torch.exp(-0.5*distance)

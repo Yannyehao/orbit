@@ -153,37 +153,50 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.5}, weight=4.0)
+    # reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.5}, weight=4.0)
 
-    # lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
+    # # lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
 
-    object_goal_tracking = RewTerm(
-        func=mdp.object_goal_distance,
-        params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
-        weight=16.0,
-    )
+    # object_goal_tracking = RewTerm(
+    #     func=mdp.object_goal_distance,
+    #     params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
+    #     weight=16.0,
+    # )
 
-    object_goal_tracking_fine_grained = RewTerm(
-        func=mdp.object_goal_distance,
-        params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
-        weight=5.0,
-    )
+    # object_goal_tracking_fine_grained = RewTerm(
+    #     func=mdp.object_goal_distance,
+    #     params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
+    #     weight=5.0,
+    # )
     
-    reaching_object2 = RewTerm(func=mdp.object2_ee_distance, params={"std": 0.5}, weight=4.0)
+    # reaching_object2 = RewTerm(func=mdp.object2_ee_distance, params={"std": 0.5}, weight=4.0)
 
-    # lifting_object2 = RewTerm(func=mdp.object2_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
+    # # lifting_object2 = RewTerm(func=mdp.object2_is_lifted, params={"minimal_height": 0.06}, weight=10.0)
 
-    object2_goal_tracking = RewTerm(
-        func=mdp.object2_goal_distance,
-        params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
-        weight=16.0,
-    )
+    # object2_goal_tracking = RewTerm(
+    #     func=mdp.object2_goal_distance,
+    #     params={"std": 0.15, "minimal_height": 0.06, "command_name": "object_pose"},
+    #     weight=16.0,
+    # )
 
-    object2_goal_tracking_fine_grained = RewTerm(
-        func=mdp.object2_goal_distance,
-        params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
-        weight=5.0,
-    )
+    # object2_goal_tracking_fine_grained = RewTerm(
+    #     func=mdp.object2_goal_distance,
+    #     params={"std": 0.01, "minimal_height": 0.06, "command_name": "object_pose"},
+    #     weight=5.0,
+    # )
+    
+    block_1_hint = RewTerm(func=mdp.block_1_hint, weight=0.2)
+    block_2_hint = RewTerm(func=mdp.block_2_hint, weight=0.2)
+    
+    block_1_goal_distance = RewTerm(
+        func=mdp.block1_goal_distance,
+        params= {"command_name": "object_pose"},
+        weight=0.3)
+    
+    block_2_goal_distance = RewTerm(
+        func=mdp.block2_goal_distance,
+        params= {"command_name": "object_pose"},
+        weight=0.3) 
 
     # action penalty
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-1e-3)
